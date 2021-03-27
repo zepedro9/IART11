@@ -1,9 +1,10 @@
 package iart.t4g11;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Board {
+public class Board implements Serializable {
     public static final int FILLED = 1;
     public static final int EMPTY = 0;
 
@@ -24,6 +25,24 @@ public class Board {
         this.currentState = currentState;
         this.length = rows.length;
         this.poolsNum = calculatePoolsNum();
+    }
+
+    public Board duplicateBoard() {
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(this);
+            oos.flush();
+            oos.close();
+            bos.close();
+            byte[] byteData = bos.toByteArray();
+            ByteArrayInputStream bais = new ByteArrayInputStream(byteData);
+            return (Board) new ObjectInputStream(bais).readObject();
+        } catch (Exception e) {
+            System.err.println("FATAL: Error duplicating board!");
+            System.exit(-1);
+            return null;
+        }
     }
 
     // Function that calculates the number of pools in a board
@@ -96,12 +115,12 @@ public class Board {
     }
 
     // Function that returns a list of all positions of a given pool (pool)
-    public ArrayList<Pair<Integer, Integer>> getPoolPositions(int pool) {
-        ArrayList<Pair<Integer, Integer>> positions = new ArrayList<>();
+    public ArrayList<Pair> getPoolPositions(int pool) {
+        ArrayList<Pair> positions = new ArrayList<>();
 
         for(int r = 0; r < length; r++) {
             for(int c = 0; c < length; c++) {
-                if(getPoolOfPosition(r, c) == pool) positions.add(new Pair<>(r ,c));
+                if(getPoolOfPosition(r, c) == pool) positions.add(new Pair(r ,c));
             }
         }
 

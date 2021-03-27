@@ -31,25 +31,25 @@ public class Game {
 
     // Auxiliary function used by fillPoolRow() that fills a single row (r) of the a pool (pool)
     public void fillPoolRowAux(int row, int pool) {
-        ArrayList<Pair<Integer, Integer>> positions = board.getPoolPositions(pool);
+        ArrayList<Pair> positions = board.getPoolPositions(pool);
 
-        for (Pair<Integer, Integer> pos : positions) {
+        for (Pair pos : positions) {
             if(pos.getA() == row) board.fillPosition(pos.getA(), pos.getB());
         }
     }
 
     // Function that empties a position on the board and also all the positions next to it and below, in the same pool
     public void emptyPoolRow(int row, int pool) {
-        for(int r = row; r < board.getLength(); r++) {
+        for(int r = row; r >= 0; r--) {
             emptyPoolRowAux(r, pool);
         }
     }
 
     // Auxiliary function used by emptyPoolRow() that fills a single row (r) of the a pool (pool)
     public void emptyPoolRowAux(int row, int pool) {
-        ArrayList<Pair<Integer, Integer>> positions = board.getPoolPositions(pool);
+        ArrayList<Pair> positions = board.getPoolPositions(pool);
 
-        for (Pair<Integer, Integer> pos : positions) {
+        for (Pair pos : positions) {
             if(pos.getA() == row) board.emptyPosition(pos.getA(), pos.getB());
         }
     }
