@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Board {
-    public final int FILLED = 1;
-    private final int EMPTY = 0;
+    public static final int FILLED = 1;
+    public static final int EMPTY = 0;
 
     private final int[] rowsRules;
     private final int[] colsRules;
@@ -32,7 +32,7 @@ public class Board {
 
         for(int r = 0; r < length; r++) {
             for(int c = 0; c < length; c++) {
-                if(getValue(r, c) > max) max = getValue(r, c);
+                if(getPoolOfPosition(r, c) > max) max = getPoolOfPosition(r, c);
             }
         }
 
@@ -96,12 +96,12 @@ public class Board {
     }
 
     // Function that returns a list of all positions of a given pool (pool)
-    public ArrayList<Position<Integer, Integer>> getPoolPositions(int pool) {
-        ArrayList<Position<Integer, Integer>> positions = new ArrayList<>();
+    public ArrayList<Pair<Integer, Integer>> getPoolPositions(int pool) {
+        ArrayList<Pair<Integer, Integer>> positions = new ArrayList<>();
 
         for(int r = 0; r < length; r++) {
             for(int c = 0; c < length; c++) {
-                if(getPoolOfPosition(r, c) == pool) positions.add(new Position<>(r ,c));
+                if(getPoolOfPosition(r, c) == pool) positions.add(new Pair<>(r ,c));
             }
         }
 
