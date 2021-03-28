@@ -1,7 +1,5 @@
 package iart.t4g11;
 
-import java.util.ArrayList;
-
 public class Main {
 
     // TODO: Pool gravity rules are probably going to be removed, as the game only allows the user/computer to
