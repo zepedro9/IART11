@@ -1,5 +1,8 @@
 package iart.t4g11;
 
+import java.lang.reflect.Array;
+import java.util.*;
+
 public class Main {
 
     // TODO: Pool gravity rules are probably going to be removed, as the game only allows the user/computer to
@@ -25,7 +28,5 @@ public class Main {
 
 
         search.depth_first_search(game.getBoard());
-
-        //search.test(game.getBoard());
     }
 }

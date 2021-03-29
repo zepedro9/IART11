@@ -4,10 +4,17 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+enum Difficulty {
+    EASY,
+    NORMAL,
+    HARD
+}
+
 public class Board implements Serializable {
     public static final int FILLED = 1;
     public static final int EMPTY = 0;
 
+    private final Difficulty difficulty;
     private final int[] rowsRules;
     private final int[] colsRules;
     private final int[][] pools;
@@ -17,8 +24,9 @@ public class Board implements Serializable {
     private final int length;
     private final int poolsNum;
 
-    public Board(String name, int[] rows, int[] cols, int[][] pools, int[][] currentState) {
+    public Board(String name, Difficulty difficulty, int[] rows, int[] cols, int[][] pools, int[][] currentState) {
         this.name = name;
+        this.difficulty = difficulty;
         this.rowsRules = rows;
         this.colsRules = cols;
         this.pools = pools;
@@ -72,6 +80,11 @@ public class Board implements Serializable {
     // Function that returns the name of the board
     public String getName() {
         return name;
+    }
+
+    // Function that returns the difficulty of the board
+    public Difficulty getDifficulty() {
+        return difficulty;
     }
 
     // Function that returns the number of pools in the board

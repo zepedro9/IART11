@@ -1,8 +1,6 @@
 package iart.t4g11;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Stack;
+import java.util.*;
 
 public class Search {
     public static final int FILLED = 1;
@@ -14,92 +12,52 @@ public class Search {
             System.out.println("GAME DONE");
             return;
         }
+        Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
-        ArrayList<int[][]> wrongStates = new ArrayList<>();
         Stack<Pair> route = new Stack<>();
         boolean searchComplete = false;
         Board nextBoard;
-        int cost = 0;
-        int i = 1;
+        HashSet<String> visitedBoards = new HashSet<>();
+        int cost = 0, i = 0;
 
-        // TODO: Infinite loop, ???
         while(!searchComplete) {
             nextNodes = getNextNodes(board);
-            Iterator<Pair> iterator = nextNodes.iterator();
-            while(iterator.hasNext()) {
-                Pair node = iterator.next();
-                if(!wrongStates.contains(board.getCurrentState())) {
-                    System.out.println(i + node.toString());
-                    i++;
-                    nextBoard = expandNode(board, node);
+            Iterator<Pair> it = nextNodes.iterator();
+            while(it.hasNext()) {
+                i++;
+                currentNode = it.next();
+                nextBoard = expandNode(board, currentNode);
+                if(!visitedBoards.contains(Arrays.deepToString(nextBoard.getCurrentState()))) {
+                    visitedBoards.add(Arrays.deepToString(nextBoard.getCurrentState()));
+                    System.out.println(i + ") Next board: ");
                     System.out.println(nextBoard.toString());
-                    System.out.println(isFailCondition(nextBoard));
-                    cost++;
                     if(isEndCondition(nextBoard)) {
+                        searchComplete = true;
                         System.out.println("GAME DONE");
-                        return;
+                        break;
                     } else if(isFailCondition(nextBoard)) {
-                        wrongStates.add(nextBoard.getCurrentState());
-                        if(!iterator.hasNext()) {
-                            board = goBackNode(board, route.pop()).duplicateBoard();
-                            break;
+                        System.out.println("Result: This node failed");
+                        if(!it.hasNext()) {
+                            System.out.println("Result: Last node failed, going back");
+                            wrongNode = route.pop();
+                            board = goBackNode(board, wrongNode);
                         }
                     } else {
-                        route.push(node);
-                        System.out.println(i + route.toString());
+                        System.out.println("Result: This node succeeded");
+                        cost++;
+                        route.push(currentNode);
                         board = nextBoard.duplicateBoard();
                         break;
                     }
-                } else {
-                    if(!iterator.hasNext()) {
-                        System.out.println("Failed after this: ");
-                        System.out.println(board.toString());
-                        System.out.println(getNextNodes(board));
-                        board = goBackNode(board, route.pop()).duplicateBoard();
-                        break;
-                    }
+                } else if(!it.hasNext()) {
+                    System.out.println("Result: Last node already visited, going back");
+                    wrongNode = route.pop();
+                    board = goBackNode(board, wrongNode);
                 }
             }
         }
 
-        /*while(!searchComplete) {
-            Iterator<Pair<Integer, Integer>> iterator = nextNodes.iterator();
-            while(iterator.hasNext()) {
-                Pair<Integer, Integer> node = iterator.next();
-                if(!visitedNodes.contains(node)) {
-                    nextBoard = expandNode(board, node);
-                    System.out.println("Next step: \n" + expandNode(board, node) + "\n" + node.toString());
-                    System.out.println(isFailCondition(expandNode(board, node)));
-                    System.out.println(route.toString());
-                    if(isFailCondition(expandNode(board, node))) return;
-                    if(isEndCondition(nextBoard)) {
-                        route.push(node);
-                        cost++;
-                        searchComplete = true;
-                        break;
-                    } else if(isFailCondition(nextBoard)) {
-                        visitedNodes.add(node);
-                        if(!iterator.hasNext()) {
-                            System.out.println("Has to go back");
-                            nextBoard = goBackNode(board, route.pop());
-                            nextNodes = getNextNodes(nextBoard);
-                            break;
-                        }
-                    } else {
-                        route.push(node);
-                        System.out.println("Current board: \n" + board);
-                        cost++;
-                        visitedNodes.add(node);
-                        nextNodes = getNextNodes(nextBoard);
-                        board = nextBoard;
-                        System.out.println("Currents board: \n" + board);
-                        break;
-                    }
-                }
-            }
-        }*/
-
-        System.out.println("Got to the end");
+        System.out.println("GOT HERE WITH COST: " + cost);
     }
 
     // Function that given a board, will search for a solution using the Breadth First Search Method, returning the final cost of the solution
@@ -115,14 +73,14 @@ public class Search {
     }
 
     // Function that given a board and the node to expand, expands the board with the node and returns it
-    private Board expandNode(Board board, Pair node) {
+    public Board expandNode(Board board, Pair node) {
         Game aux = new Game(board.duplicateBoard());
         aux.fillPoolRow(node.getA(), node.getB());
         return aux.getBoard();
     }
 
     // Function that given a board and the node, returns the board previous to the expansion of that node
-    private Board goBackNode(Board board, Pair node) {
+    public Board goBackNode(Board board, Pair node) {
         Game aux = new Game(board.duplicateBoard());
         aux.emptyPoolRow(node.getA(), node.getB());
         return aux.getBoard();
@@ -149,11 +107,9 @@ public class Search {
         int length = board.getLength();
         int[] getRowRules = board.getRowsRules();
         int[] getColRules = board.getColsRules();
-        //int[][] getPools = board.getPools();
 
         if(breaksRows(board, length, getRowRules)) return true; //Check row constraints
         if(breaksCols(board, length, getColRules)) return true; //Check column constraints
-        //if(!breaksPools(calcResult.getBoard(), length, getPools)) return true; //Check pool gravity constraints
 
         return false;
     }
@@ -163,11 +119,9 @@ public class Search {
         int length = board.getLength();
         int[] getRowRules = board.getRowsRules();
         int[] getColRules = board.getColsRules();
-        //int[][] getPools = board.getPools();
 
         if(!checkRows(board, length, getRowRules)) return false; //Check row constraints
         if(!checkCols(board, length, getColRules)) return false; //Check column constraints
-        //if(!checkPools(calcResult.getBoard(), length, getPools)) return false; //Check pool gravity constraints
 
         return true;
     }
@@ -206,39 +160,6 @@ public class Search {
         return true;
     }
 
-    // Function that checks if all the pool gravity constraints of the board are met
-    private boolean checkPools(Board board, int length, int[][] pools) {
-        ArrayList<Pair> positions;
-        Pair pos;
-        boolean isFilled = false;
-
-        for(int p = 1; p <= board.getPoolsNum(); p++) {
-            positions = board.getPoolPositions(p);
-            for (Pair position : positions) {
-                pos = position;
-                if (isFilled) {
-                    if (board.getValue(pos.getA(), pos.getB()) == EMPTY) return false;
-                } else {
-                    if (board.getValue(pos.getA(), pos.getB()) == FILLED) {
-                        isFilled = true;
-                        if (!checkPoolRowFull(board, positions, pos.getA())) return false;
-                    }
-                }
-            }
-        }
-
-        return true;
-    }
-
-    // Auxiliary function used by checkPools() that checks if all positions in a row are filled
-    private boolean checkPoolRowFull(Board board, ArrayList<Pair> positions, int row) {
-        for (Pair pos : positions) {
-            if(pos.getA() == row) if(board.getValue(pos.getA(), pos.getB()) == EMPTY) return false;
-        }
-
-        return true;
-    }
-
     // Function that checks if any of the row constraints of the board are being broken
     private boolean breaksRows(Board board, int length, int[] getRowRules) {
         int aux;
@@ -271,14 +192,5 @@ public class Search {
         }
 
         return false;
-    }
-
-    public void test(Board board) {
-
-        System.out.println("3wtf: " + board.toString());
-
-        expandNode(board, getNextNodes(board).get(0));
-
-        System.out.println("4wtf: " + board.toString());
     }
 }
