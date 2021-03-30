@@ -1,12 +1,6 @@
 package iart.t4g11;
 
-import java.lang.reflect.Array;
-import java.util.*;
-
 public class Main {
-
-    // TODO: Pool gravity rules are probably going to be removed, as the game only allows the user/computer to
-    //  fill one row at a time, filling everything below as well, which makes breaking the gravity rule impossible
 
     public static void main(String[] args) {
         PredefinedBoards puzzles = new PredefinedBoards(); //Load default puzzles
@@ -23,10 +17,10 @@ public class Main {
 
         Game game = new Game(board);
 
-        System.out.print("\n" + game.getBoard().getName());
-        game.printBoard();
+        System.out.println("\n" + game.getBoard().getName());
 
-
-        search.depth_first_search(game.getBoard());
+        //search.depth_first_search(game.getBoard());
+        //search.breadth_first_search(game.getBoard());
+        search.iterative_deepening(game.getBoard());
     }
 }

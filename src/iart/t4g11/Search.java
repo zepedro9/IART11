@@ -3,67 +3,218 @@ package iart.t4g11;
 import java.util.*;
 
 public class Search {
-    public static final int FILLED = 1;
-    public static final int EMPTY = 0;
+    private static final int FILLED = 1;
+    private static final int EMPTY = 0;
+    private static final int STEP_CAP = 10000000;
 
-    // Function that given a board, will search for a solution using the Depth First Search Method, returning the final cost of the solution
+    // Function that given a board, will search for a solution using the Depth First Search method, returning the solution, the search cost to get to it through this method, and the time taken by it
     public void depth_first_search(Board board) {
-        if(isEndCondition(board)) {
-            System.out.println("GAME DONE");
-            return;
-        }
         Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
         Stack<Pair> route = new Stack<>();
         boolean searchComplete = false;
         Board nextBoard;
         HashSet<String> visitedBoards = new HashSet<>();
-        int cost = 0, i = 0;
+        String currentStateStr;
+        int cost = 0;
+        long startTime;
+
+        if(isEndCondition(board)) searchComplete = true;
+
+        startTime = System.nanoTime();
+        System.out.println("Solving...");
 
         while(!searchComplete) {
             nextNodes = getNextNodes(board);
             Iterator<Pair> it = nextNodes.iterator();
             while(it.hasNext()) {
-                i++;
+                cost++;
                 currentNode = it.next();
                 nextBoard = expandNode(board, currentNode);
-                if(!visitedBoards.contains(Arrays.deepToString(nextBoard.getCurrentState()))) {
-                    visitedBoards.add(Arrays.deepToString(nextBoard.getCurrentState()));
-                    System.out.println(i + ") Next board: ");
-                    System.out.println(nextBoard.toString());
+                currentStateStr = testForOutOfMemory(cost, nextBoard, startTime);
+                if (currentStateStr == null) return;
+                if(!visitedBoards.contains(currentStateStr)) {
+                    visitedBoards.add(currentStateStr);
+                    //System.out.println(cost + ") Next board: ");
+                    //System.out.println(nextBoard.toString());
                     if(isEndCondition(nextBoard)) {
                         searchComplete = true;
-                        System.out.println("GAME DONE");
+                        board = nextBoard.duplicateBoard();
                         break;
                     } else if(isFailCondition(nextBoard)) {
-                        System.out.println("Result: This node failed");
+                        //System.out.println("Result: This node failed");
                         if(!it.hasNext()) {
-                            System.out.println("Result: Last node failed, going back");
+                            //System.out.println("Result: Last node failed, going back");
                             wrongNode = route.pop();
                             board = goBackNode(board, wrongNode);
                         }
                     } else {
-                        System.out.println("Result: This node succeeded");
-                        cost++;
+                        //System.out.println("Result: This node succeeded");
                         route.push(currentNode);
                         board = nextBoard.duplicateBoard();
                         break;
                     }
                 } else if(!it.hasNext()) {
-                    System.out.println("Result: Last node already visited, going back");
+                    //System.out.println("Result: Last node already visited, going back");
                     wrongNode = route.pop();
                     board = goBackNode(board, wrongNode);
                 }
             }
         }
 
-        System.out.println("GOT HERE WITH COST: " + cost);
+        finishSearch(board, cost, startTime);
     }
 
     // Function that given a board, will search for a solution using the Breadth First Search Method, returning the final cost of the solution
-    public int breadth_first_search(Board board) {
+    public void breadth_first_search(Board board) {
         ArrayList<Pair> nextNodes = getNextNodes(board);
-        return -1;
+        HashSet<String> visitedBoards = new HashSet<>();
+        Queue<Board> queue = new LinkedList<>();
+        for(Pair node : nextNodes)
+            queue.add(expandNode(board, node).duplicateBoard());
+        int cost = 0;
+        Board currentBoard = null;
+        String currentStateStr;
+        boolean searchComplete = false;
+        long startTime;
+
+        if(isEndCondition(board)) searchComplete = true;
+
+        startTime = System.nanoTime();
+        System.out.println("Solving...");
+
+        while(!searchComplete) {
+            if(queue.isEmpty()) {
+                System.err.println("Failed to solve puzzle, no end condition found");
+                return;
+            }
+            currentBoard = queue.remove().duplicateBoard();
+            cost++;
+            currentStateStr = testForOutOfMemory(cost, currentBoard, startTime);
+            if (currentStateStr == null) return;
+            if(!visitedBoards.contains(currentStateStr)) {
+                visitedBoards.add(currentStateStr);
+                if(isEndCondition(currentBoard)) {
+                    searchComplete = true;
+                } else if(!isFailCondition(currentBoard)) {
+                    nextNodes = getNextNodes(currentBoard);
+                    for(Pair node : nextNodes)
+                        queue.add(expandNode(currentBoard, node).duplicateBoard());
+                }
+            }
+        }
+
+        assert currentBoard != null;
+        finishSearch(currentBoard, cost, startTime);
+    }
+
+    public void iterative_deepening(Board board) {
+        Pair wrongNode, currentNode;
+        ArrayList<Pair> nextNodes;
+        Stack<Pair> route = new Stack<>();
+        boolean searchComplete = false, partialSearchComplete = false;
+        Board nextBoard, saveBoard = board.duplicateBoard();
+        HashSet<String> visitedBoards = new HashSet<>();
+        String currentStateStr;
+        int cost = 0, depth = 0, maxDepth = 1;
+        long startTime;
+
+        if(isEndCondition(board)) searchComplete = true;
+
+        startTime = System.nanoTime();
+        System.out.println("Solving...");
+
+        while(!searchComplete) {
+            while(!partialSearchComplete) {
+                nextNodes = getNextNodes(board);
+                Iterator<Pair> it = nextNodes.iterator();
+                while(it.hasNext()) {
+                    cost++;
+                    currentNode = it.next();
+                    nextBoard = expandNode(board, currentNode);
+                    depth++;
+                    currentStateStr = testForOutOfMemory(cost, nextBoard, startTime);
+                    if (currentStateStr == null) return;
+                    if(!visitedBoards.contains(currentStateStr)) {
+                        visitedBoards.add(currentStateStr);
+                        //System.out.println(cost + ") Next board: ");
+                        //System.out.println("Depth: " + depth + " | Max Depth: " + maxDepth);
+                        //System.out.println(nextBoard.toString());
+                        if(isEndCondition(nextBoard)) {
+                            searchComplete = true;
+                            saveBoard = nextBoard.duplicateBoard();
+                            break;
+                        } else if(depth >= maxDepth) {
+                            depth--;
+                            if(!it.hasNext()) {
+                                if(route.empty()) {
+                                    //System.out.println("Result: Last node failed, resetting with bigger MaxDepth");
+                                    partialSearchComplete = true;
+                                    break;
+                                }
+                                wrongNode = route.pop();
+                                board = goBackNode(board, wrongNode);
+                                depth--;
+                            }
+                        } else if(isFailCondition(nextBoard)) {
+                            //System.out.println("Result: This node failed");
+                            if(!it.hasNext()) {
+                                //System.out.println("Result: Last node failed, going back");
+                                wrongNode = route.pop();
+                                board = goBackNode(board, wrongNode);
+                                depth--;
+                            }
+                        } else {
+                            //System.out.println("Result: This node succeeded");
+                            route.push(currentNode);
+                            board = nextBoard.duplicateBoard();
+                            break;
+                        }
+                    } else if(!it.hasNext()) {
+                        //System.out.println("Result: Last node already visited, going back");
+                        wrongNode = route.pop();
+                        board = goBackNode(board, wrongNode);
+                        depth--;
+                    }
+                }
+            }
+            depth = 1;
+            maxDepth *= 2;
+            visitedBoards.clear();
+            board = saveBoard.duplicateBoard();
+            route.clear();
+            partialSearchComplete = false;
+        }
+
+        finishSearch(board, cost, startTime);
+    }
+
+    private void finishSearch(Board board, int cost, long startTime) {
+        long endTime;
+        long timeElapsed;
+        endTime = System.nanoTime();
+        timeElapsed = endTime - startTime;
+        System.out.println("Solved board: " + board.toString());
+        System.out.println("Solution to puzzle found with a search cost of: " + cost + " steps");
+        System.out.println("Time taken to perform search: " + timeElapsed / 1000000000 + "." + (timeElapsed / 1000000 - (timeElapsed / 1000000000) * 1000) + " seconds");
+    }
+
+    private String testForOutOfMemory(int cost, Board currentBoard, long startTime) {
+        String currentStateStr;
+        long endTime;
+        long timeElapsed;
+        try { // If the puzzle becomes too complex to solve with this algorithm, throws OutOfMemory error
+            currentStateStr = Arrays.deepToString(currentBoard.getCurrentState());
+            if(cost >= STEP_CAP) throw new OutOfMemoryError();
+        } catch(OutOfMemoryError e) {
+            endTime = System.nanoTime();
+            timeElapsed = endTime - startTime;
+            System.err.println("Failed to solve the puzzle, too many steps required!");
+            System.err.println("Stopped at step: " + cost);
+            System.err.println("Time taken: " + timeElapsed / 1000000000 + "." + (timeElapsed / 1000000 - (timeElapsed / 1000000000) * 1000) + " seconds");
+            return null;
+        }
+        return currentStateStr;
     }
 
     // Function that given a board, will search for a solution using the A* Search Method, returning the final cost of the solution
