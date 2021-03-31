@@ -2,7 +2,15 @@ package iart.t4g11;
 
 import java.util.*;
 
+// TODO: Esta classe tem muita "limpeza" para ser feita, principalmente em funções
+//  com muito código duplicado que pode ser melhor organizado, mas deixaremos isso para o fim
+
 public class Search {
+    enum Heuristic {
+        A_STAR,
+        GREEDY
+    }
+
     private static final int FILLED = 1;
     private static final int EMPTY = 0;
     private static final int STEP_CAP = 10000000;
@@ -108,6 +116,7 @@ public class Search {
         finishSearch(currentBoard, cost, startTime);
     }
 
+    // Function that given a board, will search for a solution using the Iterative Deepening Search Method, returning the final cost of the solution
     public void iterative_deepening(Board board) {
         Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
@@ -189,6 +198,123 @@ public class Search {
         finishSearch(board, cost, startTime);
     }
 
+    // Function that given a board, will search for a solution using the Greedy Search Method, returning the final cost of the solution
+    public void greedy_search(Board board) {
+        Pair wrongNode, currentNode;
+        ArrayList<Pair> nextNodes;
+        Stack<Pair> route = new Stack<>();
+        boolean searchComplete = false;
+        Board nextBoard;
+        HashSet<String> visitedBoards = new HashSet<>();
+        String currentStateStr;
+        int cost = 0;
+        long startTime;
+
+        if(isEndCondition(board)) searchComplete = true;
+
+        startTime = System.nanoTime();
+        System.out.println("Solving...");
+
+        while(!searchComplete) {
+            nextNodes = sortNodesByBest(board, getNextNodes(board), Heuristic.GREEDY);
+            Iterator<Pair> it = nextNodes.iterator();
+            while(it.hasNext()) {
+                cost++;
+                currentNode = it.next();
+                nextBoard = expandNode(board, currentNode);
+                currentStateStr = testForOutOfMemory(cost, nextBoard, startTime);
+                if (currentStateStr == null) return;
+                if(!visitedBoards.contains(currentStateStr)) {
+                    visitedBoards.add(currentStateStr);
+                    //System.out.println(cost + ") Next board: ");
+                    //System.out.println(nextBoard.toString());
+                    if(isEndCondition(nextBoard)) {
+                        searchComplete = true;
+                        board = nextBoard.duplicateBoard();
+                        break;
+                    } else if(isFailCondition(nextBoard)) {
+                        //System.out.println("Result: This node failed");
+                        if(!it.hasNext()) {
+                            //System.out.println("Result: Last node failed, going back");
+                            wrongNode = route.pop();
+                            board = goBackNode(board, wrongNode);
+                        }
+                    } else {
+                        //System.out.println("Result: This node succeeded");
+                        route.push(currentNode);
+                        board = nextBoard.duplicateBoard();
+                        break;
+                    }
+                } else if(!it.hasNext()) {
+                    //System.out.println("Result: Last node already visited, going back");
+                    wrongNode = route.pop();
+                    board = goBackNode(board, wrongNode);
+                }
+            }
+        }
+
+        finishSearch(board, cost, startTime);
+    }
+
+    // Function that given a board, will search for a solution using the A* Search Method, returning the final cost of the solution
+    public void a_star_search(Board board) {
+        Pair wrongNode, currentNode;
+        ArrayList<Pair> nextNodes;
+        Stack<Pair> route = new Stack<>();
+        boolean searchComplete = false;
+        Board nextBoard;
+        HashSet<String> visitedBoards = new HashSet<>();
+        String currentStateStr;
+        int cost = 0;
+        long startTime;
+
+        if(isEndCondition(board)) searchComplete = true;
+
+        startTime = System.nanoTime();
+        System.out.println("Solving...");
+
+        while(!searchComplete) {
+            nextNodes = sortNodesByBest(board, getNextNodes(board), Heuristic.A_STAR);
+            Iterator<Pair> it = nextNodes.iterator();
+            while(it.hasNext()) {
+                cost++;
+                currentNode = it.next();
+                nextBoard = expandNode(board, currentNode);
+                currentStateStr = testForOutOfMemory(cost, nextBoard, startTime);
+                if (currentStateStr == null) return;
+                if(!visitedBoards.contains(currentStateStr)) {
+                    visitedBoards.add(currentStateStr);
+                    //System.out.println(cost + ") Next board: ");
+                    //System.out.println(nextBoard.toString());
+                    if(isEndCondition(nextBoard)) {
+                        searchComplete = true;
+                        board = nextBoard.duplicateBoard();
+                        break;
+                    } else if(isFailCondition(nextBoard)) {
+                        //System.out.println("Result: This node failed");
+                        if(!it.hasNext()) {
+                            //System.out.println("Result: Last node failed, going back");
+                            wrongNode = route.pop();
+                            board = goBackNode(board, wrongNode);
+                        }
+                    } else {
+                        //System.out.println("Result: This node succeeded");
+                        route.push(currentNode);
+                        board = nextBoard.duplicateBoard();
+                        break;
+                    }
+                } else if(!it.hasNext()) {
+                    //System.out.println("Result: Last node already visited, going back");
+                    wrongNode = route.pop();
+                    board = goBackNode(board, wrongNode);
+                }
+            }
+        }
+
+        finishSearch(board, cost, startTime);
+    }
+
+    // Function that given the final results of a puzzle solver, display the information neatly in the console
     private void finishSearch(Board board, int cost, long startTime) {
         long endTime;
         long timeElapsed;
@@ -199,6 +325,7 @@ public class Search {
         System.out.println("Time taken to perform search: " + timeElapsed / 1000000000 + "." + (timeElapsed / 1000000 - (timeElapsed / 1000000000) * 1000) + " seconds");
     }
 
+    // Function that will test if the puzzle solver has been running for too long and is at risk of running out of memory, stopping it if true
     private String testForOutOfMemory(int cost, Board currentBoard, long startTime) {
         String currentStateStr;
         long endTime;
@@ -217,21 +344,88 @@ public class Search {
         return currentStateStr;
     }
 
-    // Function that given a board, will search for a solution using the A* Search Method, returning the final cost of the solution
-    public int a_star_search(Board board) {
-        ArrayList<Pair> nextNodes = getNextNodes(board);
+    private ArrayList<Pair> sortNodesByBest(Board board, ArrayList<Pair> nextNodes, Heuristic searchType) {
+        ArrayList<Pair> auxSorted = new ArrayList<>();
+
+        while(!nextNodes.isEmpty()) {
+            Pair tmp = getBestNode(board, nextNodes, searchType);
+            auxSorted.add(tmp);
+            nextNodes.removeIf(node -> node.equals(tmp));
+        }
+
+        return auxSorted;
+    }
+
+    private Pair getBestNode(Board board, ArrayList<Pair> nextNodes, Heuristic searchType) {
+        Pair bestNode = null;
+        int max = -1, tmp;
+
+        for(Pair node : nextNodes) {
+            tmp = evaluationFunction(board, node, searchType);
+            if(tmp > max) {
+                max = tmp;
+                bestNode = node;
+            }
+        }
+
+        assert bestNode != null;
+        return bestNode;
+    }
+
+    private int evaluationFunction(Board board, Pair node, Heuristic searchType) {
+        Board boardToEvaluate = expandNode(board, node);
+        int evalF, evalH, evalG;
+
+        switch (searchType) {
+            case A_STAR -> {
+                evalG = calculateDistanceToStart(boardToEvaluate);
+                evalH = calculateDistanceToGoal(boardToEvaluate);
+                evalF = evalG - evalH;
+            }
+            case GREEDY -> {
+                evalH = calculateDistanceToGoal(boardToEvaluate);
+                evalF = evalH;
+            }
+            default -> {
+                System.err.println("Invalid Heuristic Search requested!");
+                System.exit(-1);
+                return -1;
+            }
+        }
+
+        return evalF;
+    }
+
+    // TODO: Em teoria, para terminar todos os métodos de pesquisa heurísticos, falta só fazer esta função:
+    private int calculateDistanceToGoal(Board boardToEvaluate) {
         return -1;
     }
 
+    private int calculateDistanceToStart(Board boardToEvaluate) {
+        Board aux = boardToEvaluate.duplicateBoard();
+        int numMoves = 0, length = aux.getLength();
+
+        for(int r = 0; r < length; r++) {
+            for(int c = 0; c < length; c++) {
+                if(aux.getValue(r, c) == 1) {
+                    goBackNode(aux, new Pair(r, c));
+                    numMoves++;
+                }
+            }
+        }
+
+        return numMoves;
+    }
+
     // Function that given a board and the node to expand, expands the board with the node and returns it
-    public Board expandNode(Board board, Pair node) {
+    private Board expandNode(Board board, Pair node) {
         Game aux = new Game(board.duplicateBoard());
         aux.fillPoolRow(node.getA(), node.getB());
         return aux.getBoard();
     }
 
     // Function that given a board and the node, returns the board previous to the expansion of that node
-    public Board goBackNode(Board board, Pair node) {
+    private Board goBackNode(Board board, Pair node) {
         Game aux = new Game(board.duplicateBoard());
         aux.emptyPoolRow(node.getA(), node.getB());
         return aux.getBoard();
