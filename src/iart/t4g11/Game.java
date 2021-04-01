@@ -1,5 +1,13 @@
 package iart.t4g11;
 
+import com.googlecode.lanterna.TerminalSize;
+import com.googlecode.lanterna.graphics.TextGraphics;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.TerminalScreen;
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.terminal.Terminal;
+
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Game {
@@ -7,9 +15,31 @@ public class Game {
     public static final int EMPTY = 0;
 
     private final Board board;
+    private Screen screen;
+    private UI ui;
 
     public Game(Board board) {
         this.board = board;
+    }
+
+    public void draw() throws Exception {
+        ui = new UI();
+        ui.awaitStart();
+
+        try {
+            Terminal terminal = new DefaultTerminalFactory().setInitialTerminalSize(new TerminalSize(Settings.WIDTH,Settings.HEIGHT)).createTerminal();
+            screen = new TerminalScreen(terminal);
+            screen.startScreen();             // screens must be started
+            screen.doResizeIfNecessary();     // resize screen if necessary
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        screen.clear();
+        TextGraphics graphics = screen.newTextGraphics();
+        ui.draw(graphics);
+        screen.refresh();
     }
 
     // Function that returns the board

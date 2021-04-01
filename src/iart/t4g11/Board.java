@@ -149,4 +149,28 @@ public class Board implements Serializable {
     public void emptyPosition(int r, int c) {
         currentState[r][c] = EMPTY;
     }
+
+    public int rulesMet() {
+        int rulesMet = 0, total = 0;
+
+        for(int r = 0; r < length; r++) {
+            for(int c = 0; c < length; c++) {
+                if(total == getRowsRules()[r]) break;
+                total += getValue(r, c);
+            }
+            rulesMet += total;
+            total = 0;
+        }
+
+        for(int c = 0; c < length; c++) {
+            for(int r = 0; r < length; r++) {
+                if(total == getColsRules()[c]) break;
+                total += getValue(r, c);
+            }
+            rulesMet += total;
+            total = 0;
+        }
+
+        return rulesMet;
+    }
 }

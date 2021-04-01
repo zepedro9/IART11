@@ -13,10 +13,11 @@ public class Search {
 
     private static final int FILLED = 1;
     private static final int EMPTY = 0;
-    private static final int STEP_CAP = 10000000;
+    private static final int STEP_CAP = 2000000;
 
     // Function that given a board, will search for a solution using the Depth First Search method, returning the solution, the search cost to get to it through this method, and the time taken by it
     public void depth_first_search(Board board) {
+        System.out.println("Search algorithm: Depth First");
         Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
         Stack<Pair> route = new Stack<>();
@@ -75,6 +76,7 @@ public class Search {
 
     // Function that given a board, will search for a solution using the Breadth First Search Method, returning the final cost of the solution
     public void breadth_first_search(Board board) {
+        System.out.println("Search algorithm: Breadth First");
         ArrayList<Pair> nextNodes = getNextNodes(board);
         HashSet<String> visitedBoards = new HashSet<>();
         Queue<Board> queue = new LinkedList<>();
@@ -118,6 +120,7 @@ public class Search {
 
     // Function that given a board, will search for a solution using the Iterative Deepening Search Method, returning the final cost of the solution
     public void iterative_deepening(Board board) {
+        System.out.println("Search algorithm: Iterative Deepening");
         Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
         Stack<Pair> route = new Stack<>();
@@ -200,6 +203,7 @@ public class Search {
 
     // Function that given a board, will search for a solution using the Greedy Search Method, returning the final cost of the solution
     public void greedy_search(Board board) {
+        System.out.println("Search algorithm: Greedy");
         Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
         Stack<Pair> route = new Stack<>();
@@ -258,6 +262,7 @@ public class Search {
 
     // Function that given a board, will search for a solution using the A* Search Method, returning the final cost of the solution
     public void a_star_search(Board board) {
+        System.out.println("Search algorithm: A*");
         Pair wrongNode, currentNode;
         ArrayList<Pair> nextNodes;
         Stack<Pair> route = new Stack<>();
@@ -320,7 +325,7 @@ public class Search {
         long timeElapsed;
         endTime = System.nanoTime();
         timeElapsed = endTime - startTime;
-        System.out.println("Solved board: " + board.toString());
+        //System.out.println("Solved board: " + board.toString());
         System.out.println("Solution to puzzle found with a search cost of: " + cost + " steps");
         System.out.println("Time taken to perform search: " + timeElapsed / 1000000000 + "." + (timeElapsed / 1000000 - (timeElapsed / 1000000000) * 1000) + " seconds");
     }
@@ -346,6 +351,7 @@ public class Search {
 
     private ArrayList<Pair> sortNodesByBest(Board board, ArrayList<Pair> nextNodes, Heuristic searchType) {
         ArrayList<Pair> auxSorted = new ArrayList<>();
+        int i = 1;
 
         while(!nextNodes.isEmpty()) {
             Pair tmp = getBestNode(board, nextNodes, searchType);
@@ -380,7 +386,7 @@ public class Search {
             case A_STAR -> {
                 evalG = calculateDistanceToStart(boardToEvaluate);
                 evalH = calculateDistanceToGoal(boardToEvaluate);
-                evalF = evalG - evalH;
+                evalF = evalG + evalH;
             }
             case GREEDY -> {
                 evalH = calculateDistanceToGoal(boardToEvaluate);
@@ -396,13 +402,19 @@ public class Search {
         return evalF;
     }
 
-    // TODO: Em teoria, para terminar todos os métodos de pesquisa heurísticos, falta só fazer esta função:
     private int calculateDistanceToGoal(Board boardToEvaluate) {
-        return -1;
+        int totalDistance = 0;
+        for (int value : boardToEvaluate.getRowsRules()) {
+            totalDistance += value;
+        }
+        totalDistance *= 2;
+        return totalDistance - boardToEvaluate.rulesMet();
     }
 
     private int calculateDistanceToStart(Board boardToEvaluate) {
-        Board aux = boardToEvaluate.duplicateBoard();
+        return boardToEvaluate.rulesMet();
+
+        /*Board aux = boardToEvaluate.duplicateBoard();
         int numMoves = 0, length = aux.getLength();
 
         for(int r = 0; r < length; r++) {
@@ -414,7 +426,7 @@ public class Search {
             }
         }
 
-        return numMoves;
+        return numMoves;*/
     }
 
     // Function that given a board and the node to expand, expands the board with the node and returns it
