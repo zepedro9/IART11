@@ -19,17 +19,17 @@ public class Main {
 
         System.out.println("\n" + game.getBoard().getName());
 
+
         //search.depth_first_search(game.getBoard());
         //search.breadth_first_search(game.getBoard());
         //search.iterative_deepening(game.getBoard());
-        search.greedy_search(game.getBoard());
-        search.a_star_search(game.getBoard());
-        //System.out.println(puzzles.getBoard(0).rulesMet());
+        //search.greedy_search(game.getBoard());
+        //search.a_star_search(game.getBoard());
 
-        /*try {
+        try {
             game.draw();
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
+        }
     }
 }

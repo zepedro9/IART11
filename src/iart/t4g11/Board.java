@@ -151,7 +151,26 @@ public class Board implements Serializable {
     }
 
     public int rulesMet() {
-        int rulesMet = 0, total = 0;
+        int rulesMet = 0, totalr = 0, totalc = 0;
+
+        for(int r = 0; r < length; r++) {
+            for(int c = 0; c < length; c++) {
+                if(totalr != getRowsRules()[r]) {
+                    totalr += getValue(r, c);
+                }
+                if(totalc != getColsRules()[r]) {
+                    totalc += getValue(c, r);
+                }
+            }
+            rulesMet += totalr;
+            rulesMet += totalc;
+            totalr = 0;
+            totalc = 0;
+        }
+
+        return rulesMet;
+
+        /*int rulesMet = 0, total = 0;
 
         for(int r = 0; r < length; r++) {
             for(int c = 0; c < length; c++) {
@@ -171,6 +190,6 @@ public class Board implements Serializable {
             total = 0;
         }
 
-        return rulesMet;
+        return rulesMet;*/
     }
 }

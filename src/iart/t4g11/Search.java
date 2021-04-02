@@ -351,7 +351,6 @@ public class Search {
 
     private ArrayList<Pair> sortNodesByBest(Board board, ArrayList<Pair> nextNodes, Heuristic searchType) {
         ArrayList<Pair> auxSorted = new ArrayList<>();
-        int i = 1;
 
         while(!nextNodes.isEmpty()) {
             Pair tmp = getBestNode(board, nextNodes, searchType);
@@ -381,15 +380,16 @@ public class Search {
     private int evaluationFunction(Board board, Pair node, Heuristic searchType) {
         Board boardToEvaluate = expandNode(board, node);
         int evalF, evalH, evalG;
+        Pair distances = calculateDistances(boardToEvaluate);
 
         switch (searchType) {
             case A_STAR -> {
-                evalG = calculateDistanceToStart(boardToEvaluate);
-                evalH = calculateDistanceToGoal(boardToEvaluate);
+                evalH = distances.getA();
+                evalG = distances.getB();
                 evalF = evalG + evalH;
             }
             case GREEDY -> {
-                evalH = calculateDistanceToGoal(boardToEvaluate);
+                evalH = distances.getA();
                 evalF = evalH;
             }
             default -> {
@@ -402,31 +402,14 @@ public class Search {
         return evalF;
     }
 
-    private int calculateDistanceToGoal(Board boardToEvaluate) {
+    private Pair calculateDistances(Board boardToEvaluate) {
         int totalDistance = 0;
         for (int value : boardToEvaluate.getRowsRules()) {
             totalDistance += value;
         }
         totalDistance *= 2;
-        return totalDistance - boardToEvaluate.rulesMet();
-    }
-
-    private int calculateDistanceToStart(Board boardToEvaluate) {
-        return boardToEvaluate.rulesMet();
-
-        /*Board aux = boardToEvaluate.duplicateBoard();
-        int numMoves = 0, length = aux.getLength();
-
-        for(int r = 0; r < length; r++) {
-            for(int c = 0; c < length; c++) {
-                if(aux.getValue(r, c) == 1) {
-                    goBackNode(aux, new Pair(r, c));
-                    numMoves++;
-                }
-            }
-        }
-
-        return numMoves;*/
+        int rulesMet = boardToEvaluate.rulesMet();
+        return new Pair(totalDistance - rulesMet, rulesMet);
     }
 
     // Function that given a board and the node to expand, expands the board with the node and returns it
@@ -457,6 +440,19 @@ public class Search {
         }
 
         return nodes;
+
+        /*ArrayList<Pair> nodes = new ArrayList<>(); // Each node is composed of a Pair<Row, Pool>
+        int poolsNum = board.getPoolsNum();
+
+        for(int p = poolsNum; p >= 1; p--) {
+            int aux = -1;
+            ArrayList<Pair> positions = board.getPoolPositions(p);
+            for(Pair position : positions)
+                if(position.getA() > aux && board.getValue(position.getA(), position.getB()) == EMPTY) aux = position.getA();
+            if(aux != -1) nodes.add(new Pair(aux ,p));
+        }
+
+        return nodes;*/
     }
 
     // Function that returns true or false depending on if the board of the game is breaking rules (fail condition)
