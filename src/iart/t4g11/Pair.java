@@ -1,6 +1,8 @@
 package iart.t4g11;
 
-public class Pair {
+import java.io.Serializable;
+
+public class Pair implements Serializable {
     private int a;
     private int b;
 

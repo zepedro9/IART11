@@ -1,142 +1,90 @@
 package iart.t4g11;
 
-// TODO: Ignorar por enquanto, copy paste do meu projeto de LPOO para o Lanterna
-
-import com.googlecode.lanterna.graphics.TextGraphics;
-
 import javax.swing.*;
 import java.awt.*;
 
+enum SearchMethod {
+    DEPTH_FIRST,
+    BREADTH_FIRST,
+    ITERATIVE_DEEPENING,
+    GREEDY,
+    A_STAR;
+
+    @Override
+    public String toString() {
+        return switch (this) {
+            case DEPTH_FIRST -> "Depth-first";
+            case BREADTH_FIRST -> "Breath-first";
+            case ITERATIVE_DEEPENING -> "Iterative deepening";
+            case GREEDY -> "Greedy search";
+            case A_STAR -> "A* algorithm";
+        };
+    }
+}
+
+enum PuzzleSize {
+    SIX,
+    TEN,
+    FIFTEEN,
+    TEST;
+
+    @Override
+    public String toString() {
+        return switch (this) {
+            case SIX -> "6x6";
+            case TEN -> "10x10";
+            case FIFTEEN -> "15x15";
+            case TEST -> "test";
+        };
+    }
+}
+
 public class UI {
     private int ready = 0;
-    private String name;
-    private Difficulty difficulty;
-    private Game game;
+
+    private boolean isHuman;
+
+    private PuzzleSize puzzleSize;
+
+    private SearchMethod searchMethod;
 
     private JFrame frame;
-    private JTextField nameField;
-    private JComboBox difficultyField;
+    private JComboBox puzzleSizeField, playerTypeField, searchMethodField;
     private JButton startGameButton;
 
     public UI() {
         setupGUI();
 
         startGameButton.addActionListener(actionEvent -> {
-            name = nameField.getText();
-            switch(difficultyField.getSelectedIndex()) {
-                case 0:
-                    difficulty = Difficulty.EASY;
-                    break;
-                case 1:
-                    difficulty = Difficulty.NORMAL;
-                    break;
-                case 2:
-                    difficulty = Difficulty.HARD;
-                    break;
+            switch (playerTypeField.getSelectedIndex()) {
+                case 0 -> isHuman = true;
+                case 1 -> isHuman = false;
+            }
+            switch (puzzleSizeField.getSelectedIndex()) {
+                case 0 -> puzzleSize = PuzzleSize.SIX;
+                case 1 -> puzzleSize = PuzzleSize.TEN;
+            }
+            switch (searchMethodField.getSelectedIndex()) {
+                case 0 -> searchMethod = SearchMethod.DEPTH_FIRST;
+                case 1 -> searchMethod = SearchMethod.BREADTH_FIRST;
+                case 2 -> searchMethod = SearchMethod.ITERATIVE_DEEPENING;
+                case 3 -> searchMethod = SearchMethod.GREEDY;
+                case 4 -> searchMethod = SearchMethod.A_STAR;
             }
             ready = 1;
         });
     }
 
-    public void draw(TextGraphics graphics) throws Exception {
-        drawPlayerUI(graphics);
-        drawEnemyUI(graphics);
+    public boolean isHuman() {
+        return isHuman;
     }
 
-    public void drawPlayerUI(TextGraphics graphics) {
-        /*graphics.setBackgroundColor(TextColor.Factory.fromString(Color.UI_BG));
-        graphics.setForegroundColor(TextColor.Factory.fromString(Color.TEXT));
-
-        graphics.fillRectangle(new TerminalPosition(Settings.P_UI_POS_WIDTH, Settings.P_UI_POS_HEIGHT), new TerminalSize(Settings.P_UI_WIDTH, Settings.P_UI_HEIGHT), ' ');
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT*8, Settings.P_UI_POS_HEIGHT + 1), "Eternal Defense");
-
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 3), "Name: ");
-        graphics.disableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 7, Settings.P_UI_POS_HEIGHT + 3), name);
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 5), "Base health: ");
-        graphics.disableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 14, Settings.P_UI_POS_HEIGHT + 5), arena.getBase().getHealth() + "");
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 7), "Balance: ");
-        graphics.disableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 10, Settings.P_UI_POS_HEIGHT + 7), arena.getPlayer().getBalance() + "$");
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 9), "Generation: ");
-        graphics.disableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 13, Settings.P_UI_POS_HEIGHT + 9), arena.getGeneration().toString());
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 11), "Round: ");
-        graphics.disableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 8, Settings.P_UI_POS_HEIGHT + 11), arena.getSettings().getRound().ordinal() + "");
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 13), "Difficulty: ");
-        graphics.disableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 13, Settings.P_UI_POS_HEIGHT + 13), difficulty.toString());
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 15), "Game status: ");
-        graphics.disableModifiers(SGR.BOLD);
-        if (arena.getSettings().isGameOn()) {
-            graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 14, Settings.P_UI_POS_HEIGHT + 15), "Round ongoing!");
-        } else {
-            graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + 14, Settings.P_UI_POS_HEIGHT + 15), "Building time");
-            graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 17), "Press [BACKSPACE] to start");
-            graphics.putString(new TerminalPosition(Settings.P_UI_POS_WIDTH + Settings.INDENT, Settings.P_UI_POS_HEIGHT + 18), "the next round!");
-        }*/
+    public PuzzleSize getPuzzleSize() {
+        return puzzleSize;
     }
 
-    public void drawEnemyUI(TextGraphics graphics) throws Exception {
-        /*graphics.setBackgroundColor(TextColor.Factory.fromString(Color.UI_BG));
-        graphics.setForegroundColor(TextColor.Factory.fromString(Color.TEXT));
-
-        graphics.fillRectangle(new TerminalPosition(Settings.E_UI_POS_WIDTH, Settings.E_UI_POS_HEIGHT), new TerminalSize(Settings.E_UI_WIDTH, Settings.E_UI_HEIGHT), ' ');
-
-        graphics.enableModifiers(SGR.BOLD);
-        graphics.putString(new TerminalPosition((Settings.E_UI_WIDTH-5)/2, Settings.E_UI_POS_HEIGHT + 1), "Game Guide");
-
-        graphics.setForegroundColor(TextColor.Factory.fromString(Color.ENEMY(arena.getGeneration())));
-        graphics.putString(new TerminalPosition(Settings.INDENT + 8, Settings.E_UI_POS_HEIGHT + 3), "Enemies");
-        graphics.setForegroundColor(TextColor.Factory.fromString(Color.DEFENSE(arena.getGeneration())));
-        graphics.putString(new TerminalPosition((Settings.E_UI_WIDTH-7)/2 +2, Settings.E_UI_POS_HEIGHT + 3), "Towers");
-        graphics.putString(new TerminalPosition(Settings.E_UI_WIDTH - 14, Settings.E_UI_POS_HEIGHT + 3), "Traps");
-        graphics.setForegroundColor(TextColor.Factory.fromString(Color.TEXT));
-
-        for (Enemy.Type type : Enemy.Type.values()) {
-            graphics.enableModifiers(SGR.BOLD);
-            graphics.putString(new TerminalPosition(Settings.INDENT + 2, Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), highlightFirstChar(type.name()) + ":");
-            graphics.disableModifiers(SGR.BOLD);
-            graphics.putString(new TerminalPosition(Settings.INDENT + type.name().length() + 6, Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), "Range of " + type.getRange() + " blocks");
-        }
-
-        for (Tower.Type type : Tower.Type.values()) {
-            graphics.enableModifiers(SGR.BOLD);
-            graphics.putString(new TerminalPosition((Settings.E_UI_WIDTH-7)/2 - 6, Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), highlightFirstChar(type.name()) + ":");
-            graphics.disableModifiers(SGR.BOLD);
-            if(type.equals(Tower.Type.Air)) {
-                graphics.putString(new TerminalPosition((Settings.E_UI_WIDTH-7)/2 + type.name().length() - 2, Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), "Range of " + type.getRange() + " blocks");
-                graphics.putString(new TerminalPosition((Settings.E_UI_WIDTH-7)/2 - 6, Settings.E_UI_POS_HEIGHT + type.ordinal() + 6), "*Only tower that attacks aerial enemies!");
-            } else graphics.putString(new TerminalPosition((Settings.E_UI_WIDTH-7)/2 + type.name().length() - 2, Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), "Range of " + type.getRange() + " blocks");
-        }
-
-        for (Trap.Type type : Trap.Type.values()) {
-            graphics.enableModifiers(SGR.BOLD);
-            graphics.putString(new TerminalPosition(Settings.E_UI_WIDTH - 20, Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), highlightFirstChar(type.name()) + ":");
-            graphics.disableModifiers(SGR.BOLD);
-            if (type.equals(Trap.Type.normal)) graphics.putString(new TerminalPosition(Settings.E_UI_WIDTH - 16 + type.name().length(), Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), "One hit");
-            else graphics.putString(new TerminalPosition(Settings.E_UI_WIDTH - 16 + type.name().length(), Settings.E_UI_POS_HEIGHT + type.ordinal() + 5), "Multi-hit");
-        }*/
-    }
-
-    private String highlightFirstChar(String str) {
-        return "(" + str.charAt(0) + ")" + str.substring(1);
+    public SearchMethod getSearchMethod() {
+        return searchMethod;
     }
 
     public void awaitStart() throws InterruptedException {
@@ -145,7 +93,6 @@ public class UI {
             Thread.sleep(1000);
         }
         frame.setVisible(false);
-        return;
     }
 
     private void setupGUI() {
@@ -158,7 +105,7 @@ public class UI {
         panel2.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(10, 0, 10, 0), -1, -1));
         panel1.add(panel2, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
-        label1.setText("Eternal Defense");
+        label1.setText("Aquarium");
         panel2.add(label1, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel3 = new JPanel();
         panel3.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(1, 1, new Insets(0, 0, 20, 0), -1, -1));
@@ -167,24 +114,43 @@ public class UI {
         startGameButton.setText("Start game!");
         panel3.add(startGameButton, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JPanel panel4 = new JPanel();
-        panel4.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(2, 2, new Insets(10, 0, 10, 0), -1, -1));
+        panel4.setLayout(new com.intellij.uiDesigner.core.GridLayoutManager(3, 2, new Insets(10, 0, 10, 0), -1, -1));
         panel1.add(panel4, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_BOTH, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_SHRINK | com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        nameField = new JTextField();
-        nameField.setText("Sir Spiff");
-        panel4.add(nameField, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_WANT_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        difficultyField = new JComboBox();
+        puzzleSizeField = new JComboBox();
         final DefaultComboBoxModel defaultComboBoxModel1 = new DefaultComboBoxModel();
-        defaultComboBoxModel1.addElement("Easy");
-        defaultComboBoxModel1.addElement("Medium");
-        defaultComboBoxModel1.addElement("Hard");
-        difficultyField.setModel(defaultComboBoxModel1);
-        panel4.add(difficultyField, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        final JLabel label2 = new JLabel();
-        label2.setText("What's your name?");
-        panel4.add(label2, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        defaultComboBoxModel1.addElement("6x6");
+        defaultComboBoxModel1.addElement("10x10");
+        puzzleSizeField.setModel(defaultComboBoxModel1);
+        panel4.add(puzzleSizeField, new com.intellij.uiDesigner.core.GridConstraints(1, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+
+        playerTypeField = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel2 = new DefaultComboBoxModel();
+        defaultComboBoxModel2.addElement("Human");
+        defaultComboBoxModel2.addElement("AI");
+        playerTypeField.setModel(defaultComboBoxModel2);
+        panel4.add(playerTypeField, new com.intellij.uiDesigner.core.GridConstraints(0, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+
+        searchMethodField = new JComboBox();
+        final DefaultComboBoxModel defaultComboBoxModel3 = new DefaultComboBoxModel();
+        defaultComboBoxModel3.addElement("Depth-first search");
+        defaultComboBoxModel3.addElement("Breadth-first search");
+        defaultComboBoxModel3.addElement("Iterative Deepening");
+        defaultComboBoxModel3.addElement("Greedy search");
+        defaultComboBoxModel3.addElement("A* algorithm");
+        searchMethodField.setModel(defaultComboBoxModel3);
+        panel4.add(searchMethodField, new com.intellij.uiDesigner.core.GridConstraints(2, 1, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_WEST, com.intellij.uiDesigner.core.GridConstraints.FILL_HORIZONTAL, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_CAN_GROW, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+
         final JLabel label3 = new JLabel();
-        label3.setText("Choose difficulty:");
+        label3.setText("Choose puzzle size:");
         panel4.add(label3, new com.intellij.uiDesigner.core.GridConstraints(1, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+
+        final JLabel label4 = new JLabel();
+        label4.setText("Choose type of player:");
+        panel4.add(label4, new com.intellij.uiDesigner.core.GridConstraints(0, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+
+        final JLabel label5 = new JLabel();
+        label5.setText("(AI only) Choose search algorithm:");
+        panel4.add(label5, new com.intellij.uiDesigner.core.GridConstraints(2, 0, 1, 1, com.intellij.uiDesigner.core.GridConstraints.ANCHOR_CENTER, com.intellij.uiDesigner.core.GridConstraints.FILL_NONE, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, com.intellij.uiDesigner.core.GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
 
         frame.getContentPane().add(panel2);
         frame.getContentPane().add(panel1);
