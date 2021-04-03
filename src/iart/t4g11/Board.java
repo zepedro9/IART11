@@ -37,6 +37,7 @@ public class Board implements Serializable {
     private final int length;
     private final int poolsNum;
 
+    // Function that returns the piece that is currently selected by the player
     public Pair getSelectedPiece() {
         return selectedPiece;
     }
@@ -56,6 +57,7 @@ public class Board implements Serializable {
         this.selectedPiece = new Pair(0, 0);
     }
 
+    // Function that generates a clone of a board and returns it
     public Board duplicateBoard() {
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -172,6 +174,7 @@ public class Board implements Serializable {
         currentState[r][c] = EMPTY;
     }
 
+    // Function that return how many of the restrictions of the board have already been met
     public int rulesMet() {
         int rulesMet = 0, totalr = 0, totalc = 0;
 
@@ -193,6 +196,7 @@ public class Board implements Serializable {
         return rulesMet;
     }
 
+    // Function that returns the color of a column restriction, depending on if the restriction is being broken or not, or if it has already been met
     private String getColorForCol(int col) {
         int total = 0;
         for(int r = 0; r < length; r++) {
@@ -203,6 +207,7 @@ public class Board implements Serializable {
         else return Color.TEXT;
     }
 
+    // Function that returns the color of a row restriction, depending on if the restriction is being broken or not, or if it has already been met
     private String getColorForRow(int row) {
         int total = 0;
         for(int c = 0; c < length; c++) {
@@ -213,6 +218,7 @@ public class Board implements Serializable {
         else return Color.TEXT;
     }
 
+    // Function that executes the move of the selected piece
     public void moveSelected(Direction direction) {
         switch (direction) {
             case UP -> {

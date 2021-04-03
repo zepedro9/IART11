@@ -366,6 +366,7 @@ public class Search {
         return currentStateStr;
     }
 
+    // Function that sorts the nodes using the evaluation function related to the search method applied
     private ArrayList<Pair> sortNodesByBest(Board board, ArrayList<Pair> nextNodes, Heuristic searchType, int size) {
         ArrayList<Pair> auxSorted = new ArrayList<>();
 
@@ -378,6 +379,7 @@ public class Search {
         return auxSorted;
     }
 
+    // Function that in a list of nodes, returns the best one, depending on the evaluation function related to the search method applied
     private Pair getBestNode(Board board, ArrayList<Pair> nextNodes, Heuristic searchType, int size) {
         Pair bestNode = null;
         int max = 2000, tmp;
@@ -394,6 +396,7 @@ public class Search {
         return bestNode;
     }
 
+    // Function that returns the number of spots that are going to be filled in the current action
     private int getFilledBlocks(Board oldBoard, Board newBoard){
         int lenght  = oldBoard.getLength();
         int oldboardfilled = 0, newboardfilled = 0;
@@ -411,6 +414,7 @@ public class Search {
         return newboardfilled - oldboardfilled;
     }
 
+    // Function that returns the value of a node depending on the evaluation function related to the search method applied
     private int evaluationFunction(Board board, Pair node, Heuristic searchType, int size) {
         Board boardToEvaluate = expandNode(board, node);
         int filled = getFilledBlocks(board, boardToEvaluate);
@@ -434,6 +438,7 @@ public class Search {
         return evalF;
     }
 
+    // Function that calculates the distances from the Start and to the Goal
     private Pair calculateDistances(Board boardToEvaluate, int size) {
         int totalDistance = 0;
         for (int value : boardToEvaluate.getRowsRules()) {

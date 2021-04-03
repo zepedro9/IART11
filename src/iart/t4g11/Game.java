@@ -29,6 +29,7 @@ public class Game {
     private GameStatus gameStatus;
     private Terminal terminal;
 
+    // Function called to start the execution of the main program
     public void run() throws Exception {
         UI ui = new UI();
         ui.awaitStart();
@@ -57,12 +58,14 @@ public class Game {
         draw(true, false, searchAI);
     }
 
+    // Function that checks if the game has already hit a solution
     private void checkIfWon() {
         if(searchAI.isEndCondition(board)) {
             gameStatus = GameStatus.GAME_WON;
         }
     }
 
+    // Function that awaits for a physical action by the user (click of a button) and evaluates what to do depending on it
     private void waitForAction(boolean isHuman) throws Exception {
         KeyStroke key = screen.readInput();
         if(isHuman) {
@@ -104,6 +107,7 @@ public class Game {
         }
     }
 
+    // Function that fills or empties a selected piece on the board (and all pieces next to it or below in the same pool)
     private void toggleFillPosition(Pair selectedPiece) {
         int r = selectedPiece.getA();
         int c = selectedPiece.getB();
@@ -123,6 +127,7 @@ public class Game {
         return board;
     }
 
+    // Function that sets the board of the game
     public void setBoard(Board board) {
         this.board = board;
     }
