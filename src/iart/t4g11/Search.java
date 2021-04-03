@@ -423,12 +423,8 @@ public class Search {
         evalG = distances.getA();
 
         switch (searchType) {
-            case A_STAR -> {
-                evalF = evalH + filled;
-            }
-            case GREEDY -> { ;
-                evalF = evalH + evalG;
-            }
+            case A_STAR -> evalF = evalH + Heu1;
+            case GREEDY -> evalF = evalH + evalG;
             default -> {
                 System.err.println("Invalid Heuristic Search requested!");
                 System.exit(-1);
